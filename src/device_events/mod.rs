@@ -4,15 +4,18 @@ mod callback;
 mod event_loop;
 mod utils;
 
+use std::time::Duration;
+
+use crate::MousePosition;
+
 pub use self::callback::*;
 use self::event_loop::*;
 
+use Keycode;
 use MouseButton;
-use {DeviceQuery, Keycode};
-use {DeviceState, MousePosition};
 
 /// All the supported devices events.
-pub trait DeviceEvents: DeviceQuery {
+pub trait DeviceEvents {
     /// Register an on key down event callback.
     fn on_key_down<Callback: Fn(Keycode) + Sync + Send + 'static>(
         &self,
