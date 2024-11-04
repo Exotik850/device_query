@@ -4,26 +4,28 @@ use std::sync::{Arc, Mutex, Weak};
 use Keycode;
 
 /// Keyboard callback.
-pub type KeyboardCallback = dyn Fn(&Keycode) + Sync + Send + 'static;
+
+pub trait KeyboardCallback: Fn(&Keycode) + Sync + Send + 'static {}
+impl<F: Fn(&Keycode) + Sync + Send + 'static> KeyboardCallback for F {}
 
 /// Keyboard callbacks.
 #[derive(Default)]
 pub(crate) struct KeyboardCallbacks {
-    key_down: Mutex<Vec<Weak<KeyboardCallback>>>,
-    key_up: Mutex<Vec<Weak<KeyboardCallback>>>,
+    key_down: Mutex<Vec<Weak<dyn KeyboardCallback>>>,
+    key_up: Mutex<Vec<Weak<dyn KeyboardCallback>>>,
 }
 
 impl KeyboardCallbacks {
-    pub fn push_key_up(&self, callback: Arc<KeyboardCallback>) {
+    pub fn push_key_up(&self, callback: &Arc<impl KeyboardCallback>) {
         if let Ok(mut key_down) = self.key_up.lock() {
-            let callback = Arc::downgrade(&callback);
+            let callback = Arc::downgrade(callback);
             key_down.push(callback)
         }
     }
 
-    pub fn push_key_down(&self, callback: Arc<KeyboardCallback>) {
+    pub fn push_key_down(&self, callback: &Arc<impl KeyboardCallback>) {
         if let Ok(mut key_down) = self.key_down.lock() {
-            let callback = Arc::downgrade(&callback);
+            let callback = Arc::downgrade(callback);
             key_down.push(callback)
         }
     }

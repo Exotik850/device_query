@@ -84,7 +84,7 @@ impl EventLoop {
         callback: Callback,
     ) -> CallbackGuard<Callback> {
         let _callback = Arc::new(callback);
-        self.keyboard_callbacks.push_key_down(_callback.clone());
+        self.keyboard_callbacks.push_key_down(&_callback);
         CallbackGuard { _callback }
     }
 
@@ -93,7 +93,7 @@ impl EventLoop {
         callback: Callback,
     ) -> CallbackGuard<Callback> {
         let _callback = Arc::new(callback);
-        self.keyboard_callbacks.push_key_up(_callback.clone());
+        self.keyboard_callbacks.push_key_up(&_callback);
         CallbackGuard { _callback }
     }
 
@@ -102,7 +102,7 @@ impl EventLoop {
         callback: Callback,
     ) -> CallbackGuard<Callback> {
         let _callback = Arc::new(callback);
-        self.mouse_callbacks.push_mouse_move(_callback.clone());
+        self.mouse_callbacks.push_mouse_move(&_callback);
         CallbackGuard { _callback }
     }
 
@@ -111,7 +111,7 @@ impl EventLoop {
         callback: Callback,
     ) -> CallbackGuard<Callback> {
         let _callback = Arc::new(callback);
-        self.mouse_callbacks.push_mouse_up(_callback.clone());
+        self.mouse_callbacks.push_mouse_up(&_callback);
         CallbackGuard { _callback }
     }
 
@@ -120,7 +120,7 @@ impl EventLoop {
         callback: Callback,
     ) -> CallbackGuard<Callback> {
         let _callback = Arc::new(callback);
-        self.mouse_callbacks.push_mouse_down(_callback.clone());
+        self.mouse_callbacks.push_mouse_down(&_callback);
         CallbackGuard { _callback }
     }
 }
