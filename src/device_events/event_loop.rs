@@ -20,13 +20,13 @@ fn keyboard_thread(callbacks: Weak<KeyboardCallbacks>) -> JoinHandle<()> {
         let mut prev_keys = vec![];
         while let Some(callbacks) = callbacks.upgrade() {
             let keys = device_state.get_keys();
-            for key_state in &keys {
-                if !prev_keys.contains(key_state) {
+            for key_state in keys.iter().copied() {
+                if !prev_keys.contains(&key_state) {
                     callbacks.run_key_down(key_state);
                 }
             }
-            for key_state in &prev_keys {
-                if !keys.contains(key_state) {
+            for key_state in prev_keys.drain(..) {
+                if !keys.contains(&key_state) {
                     callbacks.run_key_up(key_state);
                 }
             }
@@ -49,13 +49,13 @@ fn mouse_thread(callbacks: Weak<MouseCallbacks>) -> JoinHandle<()> {
                 .enumerate()
             {
                 if !(*previous_state) && *current_state {
-                    callbacks.run_mouse_down(&index);
+                    callbacks.run_mouse_down(index);
                 } else if *previous_state && !(*current_state) {
-                    callbacks.run_mouse_up(&index);
+                    callbacks.run_mouse_up(index);
                 }
             }
             if mouse_state.coords != previous_mouse_state.coords {
-                callbacks.run_mouse_move(&mouse_state.coords);
+                callbacks.run_mouse_move(mouse_state.coords);
             }
             previous_mouse_state = mouse_state;
             sleep(Duration::from_micros(100));
@@ -79,48 +79,48 @@ impl Default for EventLoop {
 }
 
 impl EventLoop {
-    pub fn on_key_down<Callback: Fn(&Keycode) + Send + Sync + 'static>(
+    pub fn on_key_down<Callback: Fn(Keycode) + Send + Sync + 'static>(
         &mut self,
         callback: Callback,
-    ) -> CallbackGuard<Callback> {
+    ) -> CallbackGuard<Keycode> {
         let _callback = Arc::new(callback);
-        self.keyboard_callbacks.push_key_down(_callback.clone());
+        self.keyboard_callbacks.push_key_down(&_callback);
         CallbackGuard { _callback }
     }
 
-    pub fn on_key_up<Callback: Fn(&Keycode) + Send + Sync + 'static>(
+    pub fn on_key_up<Callback: Fn(Keycode) + Send + Sync + 'static>(
         &mut self,
         callback: Callback,
-    ) -> CallbackGuard<Callback> {
+    ) -> CallbackGuard<Keycode> {
         let _callback = Arc::new(callback);
-        self.keyboard_callbacks.push_key_up(_callback.clone());
+        self.keyboard_callbacks.push_key_up(&_callback);
         CallbackGuard { _callback }
     }
 
-    pub fn on_mouse_move<Callback: Fn(&MousePosition) + Send + Sync + 'static>(
+    pub fn on_mouse_move<Callback: Fn(MousePosition) + Send + Sync + 'static>(
         &mut self,
         callback: Callback,
-    ) -> CallbackGuard<Callback> {
+    ) -> CallbackGuard<MousePosition> {
         let _callback = Arc::new(callback);
-        self.mouse_callbacks.push_mouse_move(_callback.clone());
+        self.mouse_callbacks.push_mouse_move(&_callback);
         CallbackGuard { _callback }
     }
 
-    pub fn on_mouse_up<Callback: Fn(&MouseButton) + Send + Sync + 'static>(
+    pub fn on_mouse_up<Callback: Fn(MouseButton) + Send + Sync + 'static>(
         &mut self,
         callback: Callback,
-    ) -> CallbackGuard<Callback> {
+    ) -> CallbackGuard<MouseButton> {
         let _callback = Arc::new(callback);
-        self.mouse_callbacks.push_mouse_up(_callback.clone());
+        self.mouse_callbacks.push_mouse_up(&_callback);
         CallbackGuard { _callback }
     }
 
-    pub fn on_mouse_down<Callback: Fn(&MouseButton) + Send + Sync + 'static>(
+    pub fn on_mouse_down<Callback: Fn(MouseButton) + Send + Sync + 'static>(
         &mut self,
         callback: Callback,
-    ) -> CallbackGuard<Callback> {
+    ) -> CallbackGuard<MouseButton> {
         let _callback = Arc::new(callback);
-        self.mouse_callbacks.push_mouse_down(_callback.clone());
+        self.mouse_callbacks.push_mouse_down(&_callback);
         CallbackGuard { _callback }
     }
 }
