@@ -38,9 +38,6 @@
 //!  loop {}
 //! ```
 
-#[macro_use]
-extern crate lazy_static;
-
 #[cfg(target_os = "windows")]
 extern crate windows;
 
