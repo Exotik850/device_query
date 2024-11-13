@@ -15,31 +15,19 @@
 //!
 //! It's also possible to listen for events.
 //! ```no_run
-//!  use device_query::{DeviceEvents, DeviceState};
-//!
-//!  let device_state = DeviceState::new();
-//!
+//!  use device_query::{DeviceEvents, DeviceEventsHandler};
+//!  use std::time::Duration;
+//! 
+//!  let event_handler = DeviceEventsHandler::new(Duration::from_millis(100)).unwrap();
+//! 
+//!  // The hotkey will be deregistered when the guard is dropped
 //!  let _guard = device_state.on_mouse_move(|position| {
 //!     println!("Mouse position: {:#?}", position);
 //!  });
-//!  let _guard = device_state.on_mouse_down(|button| {
-//!     println!("Mouse button down: {:#?}", button);
-//!  });
-//!  let _guard = device_state.on_mouse_up(|button| {
-//!     println!("Mouse button up: {:#?}", button);
-//!  });
-//!  let _guard = device_state.on_key_down(|key| {
-//!     println!("Keyboard key down: {:#?}", key);
-//!  });
-//!  let _guard = device_state.on_key_up(|key| {
-//!     println!("Keyboard key up: {:#?}", key);
-//!  });
-//!
+//! 
+//!  // Keep the main thread alive
 //!  loop {}
 //! ```
-
-#[cfg(target_os = "windows")]
-extern crate windows;
 
 pub mod device_events;
 pub mod device_query;
