@@ -27,7 +27,7 @@ impl DeviceState {
         let button5pressed;
         let coords;
         unsafe {
-            coords = if GetCursorPos(point).into() {
+            coords = if GetCursorPos(point).is_ok() {
                 (point.x, point.y)
             } else {
                 (0, 0)
