@@ -1,12 +1,12 @@
 use crate::device_events::utils;
 use std::ops::DerefMut;
 use std::sync::{Arc, Mutex, Weak};
-use Keycode;
+use keyboard_types::Code;
 
 /// Keyboard callback.
 
-pub trait KeyboardCallback: Fn(Keycode) + Send + Sync + 'static {}
-impl<F: Fn(Keycode) + Send + Sync + 'static> KeyboardCallback for F {}
+pub trait KeyboardCallback: Fn(Code) + Send + Sync + 'static {}
+impl<F: Fn(Code) + Send + Sync + 'static> KeyboardCallback for F {}
 
 /// Keyboard callbacks.
 #[derive(Default)]
@@ -30,7 +30,7 @@ impl KeyboardCallbacks {
         }
     }
 
-    pub fn run_key_up(&self, key: Keycode) {
+    pub fn run_key_up(&self, key: Code) {
         if let Ok(mut callbacks) = self.key_up.lock() {
             utils::DrainFilter::drain_filter(callbacks.deref_mut(), |callback| {
                 callback.upgrade().is_none()
@@ -43,7 +43,7 @@ impl KeyboardCallbacks {
         }
     }
 
-    pub fn run_key_down(&self, key: Keycode) {
+    pub fn run_key_down(&self, key: Code) {
         if let Ok(mut callbacks) = self.key_down.lock() {
             utils::DrainFilter::drain_filter(callbacks.deref_mut(), |callback| {
                 callback.upgrade().is_none()

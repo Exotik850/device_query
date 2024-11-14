@@ -2,15 +2,15 @@
 //! an active window. Currently works in Windows, Linux, and macOS.
 //!
 //! ```no_run
-//! use device_query::{DeviceQuery, DeviceState, MouseState, Keycode};
+//! use device_query::{DeviceQuery, DeviceState, MouseState, Code};
 //!
 //! let device_state = DeviceState::new();
 //!
 //! let mouse: MouseState = device_state.get_mouse();
 //! println!("Current Mouse Coordinates: {:?}", mouse.coords);
 //!
-//! let keys: Vec<Keycode> = device_state.get_keys();
-//! println!("Is A pressed? {}", keys.contains(&Keycode::A));
+//! let keys: Vec<Code> = device_state.get_keys();
+//! println!("Is A pressed? {}", keys.contains(&Code::KeyA));
 //! ```
 //!
 //! It's also possible to listen for events.
@@ -21,7 +21,7 @@
 //!  let event_handler = DeviceEventsHandler::new(Duration::from_millis(100)).unwrap();
 //! 
 //!  // The hotkey will be deregistered when the guard is dropped
-//!  let _guard = device_state.on_mouse_move(|position| {
+//!  let _guard = event_handler.on_mouse_move(|position| {
 //!     println!("Mouse position: {:#?}", position);
 //!  });
 //! 
@@ -29,14 +29,13 @@
 //!  loop {}
 //! ```
 
-pub mod device_events;
-pub mod device_query;
-pub mod device_state;
-pub mod keymap;
-pub mod mouse_state;
+mod device_events;
+mod device_query;
+mod device_state;
+mod mouse_state;
 
 pub use device_events::*;
 pub use device_query::*;
 pub use device_state::*;
-pub use keymap::*;
 pub use mouse_state::*;
+pub use keyboard_types;

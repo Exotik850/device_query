@@ -6,13 +6,13 @@ A simple library to query mouse and keyboard inputs on demand without a window.
 Will work in Windows, Linux on X11, and macOS.
 
 ```Rust
-use device_query::{DeviceQuery, DeviceState, MouseState, Keycode};
+use device_query::{DeviceQuery, DeviceState, MouseState, Code};
 
 let device_state = DeviceState::new();
 let mouse: MouseState = device_state.get_mouse();
 println!("Current Mouse Coordinates: {:?}", mouse.coords);
-let keys: Vec<Keycode> = device_state.get_keys();
-println!("Is A pressed? {}", keys.contains(Keycode::A));
+let keys: Vec<Code> = device_state.get_keys();
+println!("Is A pressed? {}", keys.contains(Code::A));
 ```
 
 # Dependencies

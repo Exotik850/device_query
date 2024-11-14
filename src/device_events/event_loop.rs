@@ -2,10 +2,8 @@ use super::{CallbackGuard, KeyboardCallbacks};
 use std::sync::{Arc, LazyLock, Mutex, Weak};
 use std::thread::{sleep, spawn, JoinHandle};
 use std::time::Duration;
-use MouseState;
-use {DeviceQuery, MouseCallbacks};
-use {DeviceState, Keycode};
-use {MouseButton, MousePosition};
+use crate::{MouseButton, MousePosition, DeviceState, MouseCallbacks, DeviceQuery, MouseState};
+use keyboard_types::Code;
 
 pub(crate) struct EventLoop {
     keyboard_callbacks: Arc<KeyboardCallbacks>,
@@ -83,19 +81,19 @@ impl EventLoop {
         }
     }
 
-    pub fn on_key_down<Callback: Fn(Keycode) + Send + Sync + 'static>(
+    pub fn on_key_down<Callback: Fn(Code) + Send + Sync + 'static>(
         &mut self,
         callback: Callback,
-    ) -> CallbackGuard<Keycode> {
+    ) -> CallbackGuard<Code> {
         let _callback = Arc::new(callback);
         self.keyboard_callbacks.push_key_down(&_callback);
         CallbackGuard { _callback }
     }
 
-    pub fn on_key_up<Callback: Fn(Keycode) + Send + Sync + 'static>(
+    pub fn on_key_up<Callback: Fn(Code) + Send + Sync + 'static>(
         &mut self,
         callback: Callback,
-    ) -> CallbackGuard<Keycode> {
+    ) -> CallbackGuard<Code> {
         let _callback = Arc::new(callback);
         self.keyboard_callbacks.push_key_up(&_callback);
         CallbackGuard { _callback }
