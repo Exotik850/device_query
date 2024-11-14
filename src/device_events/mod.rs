@@ -11,21 +11,21 @@ use crate::MousePosition;
 pub use self::callback::*;
 use self::event_loop::*;
 
-use Keycode;
-use MouseButton;
+use keyboard_types::Code;
+use crate::MouseButton;
 
 /// All the supported devices events.
 pub trait DeviceEvents {
     /// Register an on key down event callback.
-    fn on_key_down<Callback: Fn(Keycode) + Sync + Send + 'static>(
+    fn on_key_down<Callback: Fn(Code) + Sync + Send + 'static>(
         &self,
         callback: Callback,
-    ) -> CallbackGuard<Keycode>;
+    ) -> CallbackGuard<Code>;
     /// Register an on key up event callback.
-    fn on_key_up<Callback: Fn(Keycode) + Sync + Send + 'static>(
+    fn on_key_up<Callback: Fn(Code) + Sync + Send + 'static>(
         &self,
         callback: Callback,
-    ) -> CallbackGuard<Keycode>;
+    ) -> CallbackGuard<Code>;
 
     /// Register an on mouse move event callback.
     fn on_mouse_move<Callback: Fn(MousePosition) + Sync + Send + 'static>(
@@ -69,17 +69,17 @@ macro_rules! get_event_loop {
 }
 
 impl DeviceEvents for DeviceEventsHandler {
-    fn on_key_down<Callback: Fn(Keycode) + Sync + Send + 'static>(
+    fn on_key_down<Callback: Fn(Code) + Sync + Send + 'static>(
         &self,
         callback: Callback,
-    ) -> CallbackGuard<Keycode> {
+    ) -> CallbackGuard<Code> {
         get_event_loop!().on_key_down(callback)
     }
 
-    fn on_key_up<Callback: Fn(Keycode) + Sync + Send + 'static>(
+    fn on_key_up<Callback: Fn(Code) + Sync + Send + 'static>(
         &self,
         callback: Callback,
-    ) -> CallbackGuard<Keycode> {
+    ) -> CallbackGuard<Code> {
         get_event_loop!().on_key_up(callback)
     }
 

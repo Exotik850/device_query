@@ -3,8 +3,7 @@
 use crate::device_events::utils;
 use std::ops::DerefMut;
 use std::sync::{Arc, Mutex, Weak};
-use MouseButton;
-use MousePosition;
+use crate::{MouseButton, MousePosition};
 
 /// Mouse move callback.
 pub trait MouseMoveCallback: Fn(MousePosition) + Sync + Send + 'static {}

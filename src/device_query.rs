@@ -1,7 +1,8 @@
 //! Query functions.
 
-use DeviceState;
-use {Keycode, MouseState};
+use keyboard_types::Code;
+use crate::{DeviceState, MouseState};
+
 
 /// Trait to get the state of the supported devices.
 pub trait DeviceQuery {
@@ -9,7 +10,7 @@ pub trait DeviceQuery {
     fn get_mouse(&self) -> MouseState;
 
     /// Get Keyboard state.
-    fn get_keys(&self) -> Vec<Keycode>;
+    fn get_keys(&self) -> Vec<Code>;
 }
 
 impl DeviceQuery for DeviceState {
@@ -19,7 +20,7 @@ impl DeviceQuery for DeviceState {
     }
 
     /// Query for all keys that are currently pressed down.
-    fn get_keys(&self) -> Vec<Keycode> {
+    fn get_keys(&self) -> Vec<Code> {
         self.query_keymap()
     }
 }
