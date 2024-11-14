@@ -58,7 +58,7 @@ impl DeviceState {
     }
 
     /// Query the `MouseState`.
-    pub fn query_pointer(&self) -> MouseState {
+    pub(crate) fn query_pointer(&self) -> MouseState {
         let root;
         let mut root_x = 0;
         let mut root_y = 0;
@@ -101,7 +101,7 @@ impl DeviceState {
     }
 
     /// Query the Keyboard state.
-    pub fn query_keymap(&self) -> Vec<Keycode> {
+    pub(crate) fn query_keymap(&self) -> Vec<Code> {
         let mut keycodes = vec![];
         unsafe {
             let keymap: *mut c_char = [0; 32].as_mut_ptr();

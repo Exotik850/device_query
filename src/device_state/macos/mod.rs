@@ -135,7 +135,7 @@ impl DeviceState {
         }
     }
 
-    pub fn query_pointer(&self) -> MouseState {
+    pub(crate) fn query_pointer(&self) -> MouseState {
         let (x, y) = readmouse::Mouse::location();
         let button_pressed = [
             false,
@@ -151,7 +151,7 @@ impl DeviceState {
         }
     }
 
-    pub fn query_keymap(&self) -> Vec<Keycode> {
+    pub(crate) fn query_keymap(&self) -> Vec<Code> {
         MAPPING
             .iter()
             .filter(|(from, _)| from.is_pressed())

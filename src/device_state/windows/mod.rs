@@ -21,7 +21,7 @@ impl DeviceState {
         Some(Self::new())
     }
 
-    pub fn query_pointer(&self) -> MouseState {
+    pub(crate) fn query_pointer(&self) -> MouseState {
         let point = &mut POINT { x: 0, y: 0 };
         let button1pressed;
         let button2pressed;
@@ -66,7 +66,7 @@ impl DeviceState {
         }
     }
 
-    pub fn query_keymap(&self) -> Vec<Keycode> {
+    pub(crate) fn query_keymap(&self) -> Vec<Keycode> {
         let mut keycodes = vec![];
         let mut keymap = vec![];
         unsafe {
