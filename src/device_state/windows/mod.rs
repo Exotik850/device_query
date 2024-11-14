@@ -1,9 +1,12 @@
+extern crate windows;
+
 use keymap::Keycode;
 use mouse_state::MouseState;
-use windows::Win32::Foundation::POINT;
-use windows::Win32::UI::Input::KeyboardAndMouse;
-use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VIRTUAL_KEY};
-use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+use self::windows::Win32::Foundation::POINT;
+use self::windows::Win32::UI::Input::KeyboardAndMouse;
+use self::windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VIRTUAL_KEY};
+use self::windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+
 
 #[derive(Debug, Clone)]
 pub struct DeviceState;
@@ -45,8 +48,15 @@ impl DeviceState {
         }
         MouseState {
             coords,
-            button_pressed: vec![
-                false,
+            // button_pressed: vec![
+            //     false,
+            //     button1pressed,
+            //     button2pressed,
+            //     button3pressed,
+            //     button4pressed,
+            //     button5pressed,
+            // ],
+            button_pressed: [
                 button1pressed,
                 button2pressed,
                 button3pressed,
