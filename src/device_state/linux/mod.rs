@@ -87,10 +87,7 @@ impl DeviceState {
         let button4pressed = mask_return & xlib::Button4Mask > 0;
         let button5pressed = mask_return & xlib::Button5Mask > 0;
 
-        // Use 1-based indexing here so people can just query the button
-        // number they're interested in directly.
-        let button_pressed = vec![
-            false,
+        let button_pressed = [
             button1pressed,
             button2pressed,
             button3pressed,

@@ -1,5 +1,5 @@
 use super::{CallbackGuard, KeyboardCallbacks};
-use std::sync::{Arc, Mutex, Weak};
+use std::sync::{Arc, LazyLock, Mutex, Weak};
 use std::thread::{sleep, spawn, JoinHandle};
 use std::time::Duration;
 use MouseState;
@@ -14,29 +14,29 @@ pub(crate) struct EventLoop {
     _mouse_thread: JoinHandle<()>,
 }
 
-fn keyboard_thread(callbacks: Weak<KeyboardCallbacks>) -> JoinHandle<()> {
+fn keyboard_thread(callbacks: Weak<KeyboardCallbacks>, sleep_dur: Duration) -> JoinHandle<()> {
     spawn(move || {
         let device_state = DeviceState::new();
         let mut prev_keys = vec![];
         while let Some(callbacks) = callbacks.upgrade() {
             let keys = device_state.get_keys();
-            for key_state in &keys {
-                if !prev_keys.contains(key_state) {
+            for key_state in keys.iter().copied() {
+                if !prev_keys.contains(&key_state) {
                     callbacks.run_key_down(key_state);
                 }
             }
-            for key_state in &prev_keys {
-                if !keys.contains(key_state) {
+            for key_state in prev_keys.drain(..) {
+                if !keys.contains(&key_state) {
                     callbacks.run_key_up(key_state);
                 }
             }
             prev_keys = keys;
-            sleep(Duration::from_micros(100));
+            sleep(sleep_dur);
         }
     })
 }
 
-fn mouse_thread(callbacks: Weak<MouseCallbacks>) -> JoinHandle<()> {
+fn mouse_thread(callbacks: Weak<MouseCallbacks>, sleep_dur: Duration) -> JoinHandle<()> {
     spawn(move || {
         let device_state = DeviceState::new();
         let mut previous_mouse_state = MouseState::default();
@@ -49,26 +49,32 @@ fn mouse_thread(callbacks: Weak<MouseCallbacks>) -> JoinHandle<()> {
                 .enumerate()
             {
                 if !(*previous_state) && *current_state {
-                    callbacks.run_mouse_down(&index);
+                    callbacks.run_mouse_down(index);
                 } else if *previous_state && !(*current_state) {
-                    callbacks.run_mouse_up(&index);
+                    callbacks.run_mouse_up(index);
                 }
             }
             if mouse_state.coords != previous_mouse_state.coords {
-                callbacks.run_mouse_move(&mouse_state.coords);
+                callbacks.run_mouse_move(mouse_state.coords);
             }
             previous_mouse_state = mouse_state;
-            sleep(Duration::from_micros(100));
+            sleep(sleep_dur);
         }
     })
 }
 
 impl Default for EventLoop {
     fn default() -> Self {
+        Self::new(Duration::from_micros(100))
+    }
+}
+
+impl EventLoop {
+    fn new(sleep_dur: Duration) -> Self {
         let keyboard_callbacks = Arc::new(KeyboardCallbacks::default());
         let mouse_callbacks = Arc::new(MouseCallbacks::default());
-        let _keyboard_thread = keyboard_thread(Arc::downgrade(&keyboard_callbacks));
-        let _mouse_thread = mouse_thread(Arc::downgrade(&mouse_callbacks));
+        let _keyboard_thread = keyboard_thread(Arc::downgrade(&keyboard_callbacks), sleep_dur);
+        let _mouse_thread = mouse_thread(Arc::downgrade(&mouse_callbacks), sleep_dur);
         Self {
             keyboard_callbacks,
             mouse_callbacks,
@@ -76,55 +82,62 @@ impl Default for EventLoop {
             _mouse_thread,
         }
     }
+
+    pub fn on_key_down<Callback: Fn(Keycode) + Send + Sync + 'static>(
+        &mut self,
+        callback: Callback,
+    ) -> CallbackGuard<Keycode> {
+        let _callback = Arc::new(callback);
+        self.keyboard_callbacks.push_key_down(&_callback);
+        CallbackGuard { _callback }
+    }
+
+    pub fn on_key_up<Callback: Fn(Keycode) + Send + Sync + 'static>(
+        &mut self,
+        callback: Callback,
+    ) -> CallbackGuard<Keycode> {
+        let _callback = Arc::new(callback);
+        self.keyboard_callbacks.push_key_up(&_callback);
+        CallbackGuard { _callback }
+    }
+
+    pub fn on_mouse_move<Callback: Fn(MousePosition) + Send + Sync + 'static>(
+        &mut self,
+        callback: Callback,
+    ) -> CallbackGuard<MousePosition> {
+        let _callback = Arc::new(callback);
+        self.mouse_callbacks.push_mouse_move(&_callback);
+        CallbackGuard { _callback }
+    }
+
+    pub fn on_mouse_up<Callback: Fn(MouseButton) + Send + Sync + 'static>(
+        &mut self,
+        callback: Callback,
+    ) -> CallbackGuard<MouseButton> {
+        let _callback = Arc::new(callback);
+        self.mouse_callbacks.push_mouse_up(&_callback);
+        CallbackGuard { _callback }
+    }
+
+    pub fn on_mouse_down<Callback: Fn(MouseButton) + Send + Sync + 'static>(
+        &mut self,
+        callback: Callback,
+    ) -> CallbackGuard<MouseButton> {
+        let _callback = Arc::new(callback);
+        self.mouse_callbacks.push_mouse_down(&_callback);
+        CallbackGuard { _callback }
+    }
 }
 
-impl EventLoop {
-    pub fn on_key_down<Callback: Fn(&Keycode) + Send + Sync + 'static>(
-        &mut self,
-        callback: Callback,
-    ) -> CallbackGuard<Callback> {
-        let _callback = Arc::new(callback);
-        self.keyboard_callbacks.push_key_down(_callback.clone());
-        CallbackGuard { _callback }
-    }
+pub static EVENT_LOOP: LazyLock<Mutex<Option<EventLoop>>> = LazyLock::new(|| Default::default());
 
-    pub fn on_key_up<Callback: Fn(&Keycode) + Send + Sync + 'static>(
-        &mut self,
-        callback: Callback,
-    ) -> CallbackGuard<Callback> {
-        let _callback = Arc::new(callback);
-        self.keyboard_callbacks.push_key_up(_callback.clone());
-        CallbackGuard { _callback }
+pub(crate) fn init_event_loop(sleep_dur: Duration) -> bool {
+    let Ok(mut lock) = EVENT_LOOP.lock() else {
+        return false;
+    };
+    if lock.is_some() {
+        return false;
     }
-
-    pub fn on_mouse_move<Callback: Fn(&MousePosition) + Send + Sync + 'static>(
-        &mut self,
-        callback: Callback,
-    ) -> CallbackGuard<Callback> {
-        let _callback = Arc::new(callback);
-        self.mouse_callbacks.push_mouse_move(_callback.clone());
-        CallbackGuard { _callback }
-    }
-
-    pub fn on_mouse_up<Callback: Fn(&MouseButton) + Send + Sync + 'static>(
-        &mut self,
-        callback: Callback,
-    ) -> CallbackGuard<Callback> {
-        let _callback = Arc::new(callback);
-        self.mouse_callbacks.push_mouse_up(_callback.clone());
-        CallbackGuard { _callback }
-    }
-
-    pub fn on_mouse_down<Callback: Fn(&MouseButton) + Send + Sync + 'static>(
-        &mut self,
-        callback: Callback,
-    ) -> CallbackGuard<Callback> {
-        let _callback = Arc::new(callback);
-        self.mouse_callbacks.push_mouse_down(_callback.clone());
-        CallbackGuard { _callback }
-    }
-}
-
-lazy_static! {
-    pub(crate) static ref EVENT_LOOP: Arc<Mutex<EventLoop>> = Default::default();
+    *lock = Some(EventLoop::new(sleep_dur));
+    true
 }

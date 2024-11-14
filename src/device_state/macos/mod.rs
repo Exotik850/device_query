@@ -137,7 +137,7 @@ impl DeviceState {
 
     pub fn query_pointer(&self) -> MouseState {
         let (x, y) = readmouse::Mouse::location();
-        let button_pressed = vec![
+        let button_pressed = [
             false,
             readmouse::Mouse::Left.is_pressed(),
             readmouse::Mouse::Right.is_pressed(),
